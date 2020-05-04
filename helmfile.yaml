@@ -1,0 +1,170 @@
+environments:
+  default:
+    values:
+      - domain: "corp.c8n.me"
+      - allowed_user: "Bauer.vadim@gmail.com"
+      - github_clientID: "a3f5b7c93dd6afa5659e"
+      - github_clientSecret: "442f2a4907e84e23388cd58060d0e794a3feb573"
+      - acme_email: "pomerium@getnada.com"
+
+helmDefaults:
+  wait: true
+
+repositories:
+  - name: pomerium
+    url: https://helm.pomerium.io
+  - name: incubator
+    url: https://kubernetes-charts-incubator.storage.googleapis.com
+  - name: dniel
+    url: https://dniel.github.io/charts/
+  - name: traefik
+    url: https://containous.github.io/traefik-helm-chart
+  - name: jetstack
+    url: https://charts.jetstack.io
+
+releases:
+  - name: cert-manager
+    namespace: cert-manager
+    chart: jetstack/cert-manager
+    version: v0.14.2
+    atomic: true
+    hooks:
+      - events: ["presync"]
+        command: "/bin/sh"
+        args: ["-c","kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/{{`{{ .Release.Version }}`}}/cert-manager.crds.yaml > /dev/null 2>&1 || true"]
+    values:
+      - installCRDs: true
+
+  - name: letsencrypt-cert-issuer
+    namespace: cert-manager
+    chart: incubator/raw
+    installed: {{ exec "./do.sh" (list "testCerManagerCRDExists") | trim }}
+    needs:
+      - cert-manager/cert-manager
+    values:
+      - resources:
+          - apiVersion: cert-manager.io/v1alpha2
+            kind: ClusterIssuer
+            metadata:
+              name: letsencrypt-prod
+            spec:
+              acme:
+                server: https://acme-v02.api.letsencrypt.org/directory
+                email: {{ .Values.acme_email }}
+                privateKeySecretRef:
+                  name: letsencrypt-prod
+                solvers:
+                  - selector: {}
+                    http01:
+                      ingress:
+                        class: traefik
+  - name: traefik
+    namespace: kube-system
+    chart: traefik/traefik
+    version: 8.1.4
+    atomic: true
+    needs:
+      - cert-manager/cert-manager
+    values:
+      - additionalArguments:
+          - "--providers.kubernetesingress"
+          - "--metrics.prometheus=true"
+          #          - "--entryPoints.websecure.forwardedHeaders.trustedIPs=51.18.7.5,1.1.12.24"
+          #          - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+          - "--serverstransport.insecureskipverify=true"
+
+  - name: traefik-pomerium-auth-middleware
+    namespace: kube-system
+    chart: incubator/raw
+    installed: {{ exec "./do.sh" (list "testTraefikCRDExists") | trim }}
+    values:
+      - resources:
+          - apiVersion: traefik.containo.us/v1alpha1
+            kind: Middleware
+            metadata:
+              name: pomerium-auth-middleware
+            spec:
+              forwardAuth:
+                address: "https://pomerium-proxy/?uri=https://whoami.{{ .Values.domain }}"
+                trustForwardHeader: true
+                authResponseHeaders:
+                  - x-pomerium-jwt-assertion
+                  - x-pomerium-claim-email
+                tls:
+                  insecureSkipVerify: true
+  - name: pomerium
+    namespace: kube-system
+    chart: pomerium/pomerium
+    version: 8.5.1
+    atomic: true
+    needs:
+      - kube-system/traefik
+    values:
+      - image:
+          tag: master
+          pullPolicy: "Always"
+      - config:
+          rootDomain: {{ .Values.domain }}
+          generateTLS: true #need to set true, Traefik will try to talk over TLS even if this is false. (bug helmfile)
+          insecure: false
+          extraOpts:
+            jwt_claims_headers: email
+          policy:
+            # Auth Forward Mode Policy
+            - from: "https://whoami.{{ .Values.domain }}"
+              to: "http://whoami.whoami.svc"
+              allowed_users:
+                - "{{ .Values.allowed_user }}"
+              preserve_host_header: true
+            # Proxy Mode Policy
+            - from: "https://whoamiproxy.{{ .Values.domain }}"
+              to: "http://whoamiproxy.whoami.svc"
+              allowed_users:
+                - "{{ .Values.allowed_user }}"
+              preserve_host_header: true
+      - authenticate:
+          idp:
+            provider: "github"
+            clientID: "{{ .Values.github_clientID }}"
+            clientSecret: "{{ .Values.github_clientSecret }}"
+      - forwardAuth:
+          enabled: true
+          internal: true
+      - ingress:
+          hosts:
+            - "whoamiproxy.{{ .Values.domain }}"
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            traefik.ingress.kubernetes.io/router.entrypoints: websecure
+            traefik.ingress.kubernetes.io/router.tls: "true"
+          secretName: pomerium-ingress-tls
+
+  - name: whoami
+    namespace: whoami
+    chart: dniel/whoami
+    atomic: true
+    installed: true
+    values:
+      - ingress:
+          enabled: true
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            traefik.ingress.kubernetes.io/router.entrypoints: websecure
+            traefik.ingress.kubernetes.io/router.tls: "true"
+            traefik.ingress.kubernetes.io/router.middlewares: "kube-system-pomerium-auth-middleware@kubernetescrd"
+          hosts:
+            - host: "whoami.{{ .Values.domain }}"
+              paths: ["/"]
+          tls:
+            - secretName: whoami-cert
+              hosts:
+                - "whoami.{{ .Values.domain }}"
+  - name: whoamiproxy
+    namespace: whoami
+    chart: dniel/whoami
+    atomic: true
+    installed: true
+    values:
+      - ingress:
+          enabled: false
