@@ -39,7 +39,7 @@ The Pomerium documentation does not emphasize it enough, there are actually two 
 
 Both modes can be used at the same time and have their pros and cons.  The below diagram compares the both modes visually.
 
-![Pomerium Proxy vs Forward Auth Mode](./Pomerium-Operation-Modes.svg?sanitize=true)
+![Pomerium Proxy vs Forward Auth Mode](./Pomerium-Operation-Modes.png)
 
 This example incorporates both modes in one deployment. The service `whoami` is protected with Forward Auth and `whoamiproxy` sits behind Pomerium Proxy.
 
