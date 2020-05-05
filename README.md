@@ -1,5 +1,5 @@
 
-# Traefik with Pomerium Forward Auth and Proxy on Kubernets with Helm
+# Traefik with Pomerium Forward Auth and Proxy on Kubernetes with Helm
 
 This fully functional end to end example demonstrates the usage use of Pomerium together with Traefik to make upstream 
 Resources only accessible after authentication and authorization.  
@@ -51,7 +51,7 @@ Before you start verify that you have all the needed tools from the [BOM - Bill 
 Clone this repository or just download the `helmfile.yaml` and `do.sh` to your project.
  
 ```sh
-git clone git@github.com:8gears/Traefik-with-Pomerium-Forward-Auth-and-Proxy-on-Kubernets-with-Helm.git
+git clone git@github.com:8gears/Traefik-with-Pomerium-Forward-Auth-and-Proxy-on-Kubernetes-with-Helm.git
 ```
 
 ###  Mandatory Values
