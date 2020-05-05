@@ -6,7 +6,7 @@ Resources only accessible after authentication and authorization.
 This example has its primary focus on [Pomerium](https://www.pomerium.io/) which is an outstanding identity-aware access
 Proxy which amongst [other things](https://docs.pomerium.io/docs/) support AuthN(tication) and AuthZ(orization).
 
-Pomerium is not the firs auth proxy, but it is exceptional in a way it doesn't only aim to protect some self crafted operational dashboards or services but really intends to provide AuthN/AuthZ that could be bundled with high demand customer facing application with a rich set of options.
+Pomerium is not the firs auth proxy, but it is exceptional as it not only to protect self crafted operational dashboards or services but really intends to provide AuthN/AuthZ that could be bundled with demanding customer facing applications providing a rich set of options.
 
 ## BOM - Bill of Materials
 
