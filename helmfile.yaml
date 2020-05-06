@@ -2,7 +2,7 @@ environments:
   default:
     values:
       - domain: "corp.c8n.me"
-      - allowed_user: "Bauer.vadim@gmail.com"
+      - allowed_user: "githubuser@gmail.com"
       - github_clientID: "a3f5b7c93dd6afa5659e"
       - github_clientSecret: "442f2a4907e84e23388cd58060d0e794a3feb573"
       - acme_email: "pomerium@getnada.com"
