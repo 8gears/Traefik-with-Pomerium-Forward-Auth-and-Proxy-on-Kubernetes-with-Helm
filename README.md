@@ -204,6 +204,6 @@ As stated in the beginning, Pomerium is the best but not the first.
 - [simov/grant](https://github.com/simov/grant) - Nodejs based OAuth Proxy for 180+ IDPs.
 - [ory/oathkeeper](https://github.com/ory/oathkeeper) - ORY Oathkeeper is an Identity & Access Proxy (IAP) and Access Control Decision API that authorizes HTTP requests based on sets of Access Rules. The BeyondCorp Model is designed by [Google](https://cloud.google.com/beyondcorp/) and secures applications in Zero-Trust networks.
 
-## Sponsor
+## Sponsors
 
 This project is sponsored by [8gears](https://8gears.com) - We help SaaS business to ship faster to the Cloud with less pain.
