@@ -1,5 +1,5 @@
 
-# Traefik with Pomerium Forward Auth and Proxy on Kubernetes with Helm
+# Traefik with Pomerium on Kubernetes with Helm
 
 This fully functional end to end example demonstrates the usage use of Pomerium together with Traefik to make upstream 
 Resources only accessible after authentication and authorization.  
