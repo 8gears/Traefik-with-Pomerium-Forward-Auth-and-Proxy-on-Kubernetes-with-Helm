@@ -37,7 +37,7 @@ The Pomerium documentation does not emphasize it enough, there are actually two 
 1. Proxy Mode
 2. Forward Auth Mode
 
-Both modes can be used at the same time and have their pros and cons.  The below diagram compares the both modes visually.
+Both modes of operation can be used at the same time. They have their pros and cons that are not addressed here. The below diagram highlights both modes visually.
 
 ![Pomerium Proxy vs Forward Auth Mode](./Pomerium-Operation-Modes.png)
 
